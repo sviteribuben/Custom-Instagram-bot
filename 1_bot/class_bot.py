@@ -59,10 +59,10 @@ class InstagramBot():
         # сoбираем все ссылки со страницы
         hrefs = browser.find_elements_by_tag_name('a')
         # формируем список нужных ссылок
-        posts_urls = [item.get_attribute('href') for item in hrefs if "/p/" in item.get_attribute('href')]
-
+        posts_url = [item.get_attribute('href') for item in hrefs if "/p/" in item.get_attribute('href')]
+        # print(posts_url)
         # лайкаем все посты по хэштегу
-        for url in posts_urls:
+        for url in posts_url:
             try:
                 browser.get(url)
                 time.sleep(5)
@@ -74,7 +74,7 @@ class InstagramBot():
                 print(ex)
                 self.browser.close()
 
-    #проверяем по xpath существует ли элемент на странице
+    # проверяем по xpath существует ли элемент на странице
     def xpath_exist(self, url):
 
         browser = self.browser
@@ -84,7 +84,9 @@ class InstagramBot():
         except NoSuchElementException:
             exist = False
         return exist
-    #ставим лайк на пост по прямой ссылке
+
+    # ставим лайк на пост по прямой ссылке
+
     def put_exactly_like(self, userpost):
 
         browser = self.browser
@@ -93,17 +95,17 @@ class InstagramBot():
 
         wrong_userpage = "/html/body/div[1]/section/main/div/h2"
         if self.xpath_exist(wrong_userpage):
-            print('Тоста не существует проверь URL')
+            print('Поста не существует проверь URL')
+            self.close_browser()
         else:
             print('Пост успешно найден, ставим лайк')
             time.sleep(2)
 
-        like_button = "html/body/div[1]/section/main/div/div/article/div[3]/section[1]/span[1]/button"
-        browser.find_element_by_xpath(like_button).click()
-        time.sleep(2)
-        print(f'Лайк на пост {userpost} успешно поставлен')
-
-
+            like_button = "html/body/div[1]/section/main/div/div/article/div[3]/section[1]/span[1]/button"
+            browser.find_element_by_xpath(like_button).click()
+            time.sleep(2)
+            print(f'Лайк на пост {userpost} успешно поставлен')
+            self.close_browser()
 
     def put_many_likes(self, userpage):
 
@@ -114,35 +116,76 @@ class InstagramBot():
         wrong_userpage = "/html/body/div[1]/section/main/div/h2"
         if self.xpath_exist(wrong_userpage):
             print('Юзера не существует проверь URL')
+            self.close_browser()
         else:
             print('Юзер успешно найден, ставим лайк')
             time.sleep(2)
 
-        post_count = int(browser.find_element_by_xpath('/html/body/div[1]/section/main/div/header/section/ul/li[1]/span/span').text)
-        loops_count = int(post_count / 12)
-        print(loops_count)
+            post_count = int(browser.find_element_by_xpath(
+                '/html/body/div[1]/section/main/div/header/section/ul/li[1]/span/span').text)
+            loops_count = int(post_count / 12)
+            print(loops_count)
+            time.sleep(2)
 
+            posts_urls = []
+#проверка условия прокрутки страницы если мало простов то else
+            if loops_count > 0:
+                for i in range(0, loops_count):
+                    hrefs = browser.find_elements_by_tag_name('a')
+                    hrefs = [item.get_attribute('href') for item in hrefs if "/p/" in item.get_attribute('href')]
 
-        post_urls = []
-        for i in range(0, loops_count):
-            hrefs = browser.find_elements_by_name('a')
-            hrefs = [item.get_attribute('href') for item in hrefs if "/p/" in item.get_attribute('href')]
-            for href in hrefs:
-                post_urls.append(href)
+                    for href in hrefs:
+                        posts_urls.append(href)
 
-            browser.execute_script('window.scrollTo(0, document.body.scrollHeight);')
-            time.sleep(random.randrange(2, 4))
-            print(f'Итерация #{i}')
+                    browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                    time.sleep(random.randrange(3, 5))
+                    print(f"Итерация #{i}")
+            else:
+                print("прокрутка не требуется")
+                hrefs = browser.find_elements_by_tag_name('a')
+                hrefs = [item.get_attribute('href') for item in hrefs if "/p/" in item.get_attribute('href')]
+                for href in hrefs:
+                    posts_urls.append(href)
+                time.sleep(random.randrange(3, 5))
 
-        file_name = userpage.split('/')[-2]
+            file_name = userpage.split('/')[-2]
 
-        with open(f'{file_name}.txt', 'a') as file:
-            for post in post_urls:
-                file.write(post + '\n')
+            with open(f'{file_name}.txt', 'a', encoding='utf-8') as file:
+                for post_url in posts_urls:
+                    file.write(post_url + "\n")
 
-        self.close_browser()
+            # избавимся от задвоения сслыок и внесем рандом
+            set_posts_urls = set(posts_urls)
+            set_posts_urls = list(set_posts_urls)
+
+            with open(f'{file_name}_set.txt', 'a', encoding='utf-8') as f:
+                for post_url in set_posts_urls:
+                    f.write(post_url + '\n')
+
+            # лайкаем
+            with open(f'{file_name}_set.txt') as file:
+                urls_list = file.readlines()
+
+                for post_url in urls_list[:10]:
+                    try:
+                        browser.get(post_url)
+                        time.sleep(2)
+
+                        like_button = "html/body/div[1]/section/main/div/div/article/div[3]/section[1]/span[1]/button"
+                        browser.find_element_by_xpath(like_button).click()
+                        # time.sleep(random.randrange(80, 100))
+                        time.sleep(2)
+
+                        print(f'Лайк на пост {post_url} успешно поставлен')
+                    except Exception as ex:
+                        print(ex)
+                        self.close_browser()
+
+            self.close_browser()
 
 
 my_bot = InstagramBot(username, password)
 my_bot.login()
-my_bot.put_many_likes('https://www.instagram.com/zherdevifan/')
+my_bot.put_many_likes('https://www.instagram.com/doctorkolesnik_/')
+# my_bot.put_exactly_like('https://www.instagram.com/p/B9j0VnRoDOJ/')
+# my_bot.like_photo_by_hastag('data')
