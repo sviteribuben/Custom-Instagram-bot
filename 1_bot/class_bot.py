@@ -5,6 +5,8 @@ from selenium.common.exceptions import NoSuchElementException
 # импортируем модули time and random to create pause
 import time
 import random
+import requests
+import os
 
 
 class InstagramBot():
@@ -107,8 +109,9 @@ class InstagramBot():
             print(f'Лайк на пост {userpost} успешно поставлен')
             self.close_browser()
 
-    def put_many_likes(self, userpage):
+    # метод собирает ссылки на все посты пользователя
 
+    def get_all_posts_urls(self, userpage):
         browser = self.browser
         browser.get(userpage)
         time.sleep(4)
@@ -128,7 +131,7 @@ class InstagramBot():
             time.sleep(2)
 
             posts_urls = []
-#проверка условия прокрутки страницы если мало простов то else
+            # проверка условия прокрутки страницы если мало простов то else
             if loops_count > 0:
                 for i in range(0, loops_count):
                     hrefs = browser.find_elements_by_tag_name('a')
@@ -162,30 +165,102 @@ class InstagramBot():
                 for post_url in set_posts_urls:
                     f.write(post_url + '\n')
 
-            # лайкаем
-            with open(f'{file_name}_set.txt') as file:
-                urls_list = file.readlines()
 
-                for post_url in urls_list[:10]:
-                    try:
-                        browser.get(post_url)
-                        time.sleep(2)
+    def put_many_likes(self, userpage):
 
-                        like_button = "html/body/div[1]/section/main/div/div/article/div[3]/section[1]/span[1]/button"
-                        browser.find_element_by_xpath(like_button).click()
-                        # time.sleep(random.randrange(80, 100))
-                        time.sleep(2)
+        browser = self.browser
+        self.get_all_posts_urls(userpage)
+        file_name = userpage.split('/')[-2]
+        time.sleep(4)
+        browser.get(userpage)
+        time.sleep(4)
 
-                        print(f'Лайк на пост {post_url} успешно поставлен')
-                    except Exception as ex:
-                        print(ex)
-                        self.close_browser()
+        # лайкаем
+        with open(f'{file_name}_set.txt') as file:
+            urls_list = file.readlines()
+
+            for post_url in urls_list[:10]:
+                try:
+                    browser.get(post_url)
+                    time.sleep(2)
+
+                    like_button = "html/body/div[1]/section/main/div/div/article/div[3]/section[1]/span[1]/button"
+                    browser.find_element_by_xpath(like_button).click()
+                    # time.sleep(random.randrange(80, 100))
+                    time.sleep(2)
+
+                    print(f'Лайк на пост {post_url} успешно поставлен')
+                except Exception as ex:
+                    print(ex)
+                    self.close_browser()
+
+    def download_userpage_content(self, userpage):
+
+        browser = self.browser
+        self.get_all_posts_urls(userpage)
+        file_name = userpage.split('/')[-2]
+        time.sleep(4)
+        browser.get(userpage)
+        time.sleep(4)
+
+        #создаем папку с именем пользователя
+        if os.path.exists(f'{file_name}'):
+            print('папка уже есть')
+        else:
+            os.mkdir(file_name)
+
+        # сохраним ссылки в список
+        img_and_video_src_urls = []
+        with open(f'{file_name}_set.txt') as file:
+            urls_list = file.readlines()
+
+            for post_url in urls_list:
+                try:
+                    browser.get(post_url)
+                    time.sleep(4)
+
+                    img_src = '/html/body/div[1]/section/main/div/div[1]/article/div[2]/div/div/div[1]/img'
+                    video_src = '/html/body/div[1]/section/main/div/div[1]/article/div[2]/div/div/div[1]/div/div/video'
+                    post_id = post_url.split('/')[-2]
+                    #если картинка есть на странице то мы забираем ссылку из атрибута src
+                    if self.xpath_exist(img_src):
+                        img_src_url = browser.find_element_by_xpath(img_src).get_attribute('src')
+                        img_and_video_src_urls.append(img_src_url)
+                        # сохраняем изображение
+                        get_img = requests.get(img_src_url)
+                        with open(f'{file_name}/{file_name}_{post_id}_img.jpg', 'wb') as img_file:
+                            img_file.write(get_img.content)
+
+                    elif self.xpath_exist(video_src):
+                        video_src_url = browser.find_element_by_xpath(video_src).get_attribute('src')
+                        img_and_video_src_urls.append(video_src_url)
+
+                        # сохраняем видео
+                        get_video = requests.get(video_src_url, stream=True)
+                        with open(f'{file_name}/{file_name}_{post_id}_video.mp4', 'wb') as video_file:
+                            video_file.write(get_video.content)
+                            for chunk in get_video.iter_content(chunk_size=1024*1024):
+                                if chunk:
+                                    video_file.write(chunk)
+                    else:
+                        # print('что-то сломалось')
+                        img_and_video_src_urls.append(f'{post_url} нет ссылки')
+                    print(f'контент из поста {post_url} успешно скачан')
+
+                except Exception as ex:
+                    print(ex)
+                    self.close_browser()
 
             self.close_browser()
+
+        with open(f'{file_name}/{file_name}_img_and_video_src_urls.txt', 'a') as file:
+            for i in img_and_video_src_urls:
+                file.write(i + '\n')
+
 
 
 my_bot = InstagramBot(username, password)
 my_bot.login()
-my_bot.put_many_likes('https://www.instagram.com/doctorkolesnik_/')
+my_bot.download_userpage_content('https://www.instagram.com/elayes.lb/')
 # my_bot.put_exactly_like('https://www.instagram.com/p/B9j0VnRoDOJ/')
 # my_bot.like_photo_by_hastag('data')
