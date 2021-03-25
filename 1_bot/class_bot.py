@@ -423,6 +423,7 @@ class InstagramBot():
         text_message_area = browser.find_element_by_xpath('/html/body/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea')
         text_message_area.clear()
         text_message_area.send_keys(message)
+        time.sleep(random.randrange(2, 4))
         text_message_area.send_keys(Keys.ENTER)
         print(f'Сообщение для {username} успешно отправлено')
 
