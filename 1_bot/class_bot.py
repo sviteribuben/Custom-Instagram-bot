@@ -402,23 +402,23 @@ class InstagramBot():
             time.sleep(random.randrange(2, 4))
 
         # отключаем всплывающее окно
-        if self.xpath_exist('/html/body/div[4]/div/div'):
-            browser.find_element_by_xpath('/html/body/div[4]/div/div/div/div[3]/button[2]').click()
+        if self.xpath_exist('/html/body/div[5]/div'):
+            browser.find_element_by_xpath('/html/body/div[5]/div/div/div/div[3]/button[2]').click()
         time.sleep(random.randrange(2, 4))
 
         send_message_button = browser.find_element_by_xpath('/html/body/div[1]/section/div/div[2]/div/div/div[2]/div/div[3]/div/button').click()
         time.sleep(random.randrange(2, 4))
 
         # вводим получателя
-        to_input = browser.find_element_by_xpath('/html/body/div[4]/div/div/div[2]/div[1]/div/div[2]/input')
+        to_input = browser.find_element_by_xpath('/html/body/div[5]/div/div/div[2]/div[1]/div/div[2]/input')
         to_input.send_keys(username)
         time.sleep(random.randrange(2, 4))
 
         # выбираем получателя из списка
-        users_list = browser.find_element_by_xpath('/html/body/div[4]/div/div/div[2]/div[2]').find_element_by_tag_name('button').click()
+        users_list = browser.find_element_by_xpath('/html/body/div[5]/div/div/div[2]/div[2]').find_element_by_tag_name('button').click()
         time.sleep(random.randrange(2, 4))
 
-        next_button = browser.find_element_by_xpath('/html/body/div[4]/div/div/div[1]/div/div[2]/div/button').click()
+        next_button = browser.find_element_by_xpath('/html/body/div[5]/div/div/div[1]/div/div[2]/div/button').click()
         time.sleep(random.randrange(2, 4))
 
         text_message_area = browser.find_element_by_xpath('/html/body/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea')
@@ -433,7 +433,7 @@ class InstagramBot():
 
 
     # метод массовой рассылки сообщений в директ
-    def masiiv_sending_messages(self, usernames='', message='', img_path=''):
+    def masiv_sending_messages(self, usernames='', message='', img_path=''):
 
         browser = self.browser
         time.sleep(random.randrange(2, 4))
@@ -448,29 +448,31 @@ class InstagramBot():
             time.sleep(random.randrange(2, 4))
 
         # отключаем всплывающее окно
-        if self.xpath_exist('/html/body/div[4]/div/div'):
-            browser.find_element_by_xpath('/html/body/div[4]/div/div/div/div[3]/button[2]').click()
+        if self.xpath_exist('/html/body/div[5]/div'):
+            browser.find_element_by_xpath('/html/body/div[5]/div/div/div/div[3]/button[2]').click()
         time.sleep(random.randrange(2, 4))
 
-        send_message_button = browser.find_element_by_xpath('/html/body/div[1]/section/div/div[2]/div/div/div[2]/div/div[3]/div/button').click()
+        send_message_button = browser.find_element_by_xpath(
+            '/html/body/div[1]/section/div/div[2]/div/div/div[2]/div/div[3]/div/button').click()
         time.sleep(random.randrange(2, 4))
         # отправка сообщений нескольким пользователям
         for user in usernames:
             # вводим получателя
-            to_input = browser.find_element_by_xpath('/html/body/div[4]/div/div/div[2]/div[1]/div/div[2]/input')
+            to_input = browser.find_element_by_xpath('/html/body/div[5]/div/div/div[2]/div[1]/div/div[2]/input')
             to_input.send_keys(user)
             time.sleep(random.randrange(2, 4))
 
             # выбираем получателя из списка
-            users_list = browser.find_element_by_xpath('/html/body/div[4]/div/div/div[2]/div[2]').find_element_by_tag_name('button').click()
+            users_list = browser.find_element_by_xpath('/html/body/div[5]/div/div/div[2]/div[2]').find_element_by_tag_name('button').click()
             time.sleep(random.randrange(2, 4))
 
-        next_button = browser.find_element_by_xpath('/html/body/div[4]/div/div/div[1]/div/div[2]/div/button').click()
+        next_button = browser.find_element_by_xpath('/html/body/div[5]/div/div/div[1]/div/div[2]/div/button').click()
         time.sleep(random.randrange(2, 4))
 
         # отправка текстового сообщения
         if message:
-            text_message_area = browser.find_element_by_xpath('/html/body/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea')
+            text_message_area = browser.find_element_by_xpath(
+                '/html/body/div[1]/section/div/div[2]/div/div/div[2]/div[2]/div/div[2]/div/div/div[2]/textarea')
             text_message_area.clear()
             text_message_area.send_keys(message)
             time.sleep(random.randrange(2, 4))
@@ -493,8 +495,8 @@ class InstagramBot():
 my_bot = InstagramBot(username, password)
 my_bot.login()
 # my_bot.get_all_followers('https://www.instagram.com/mgelatta/')
-# my_bot.send_direct_message()
-my_bot.masiiv_sending_messages(direct_users_list, "Hey wassup bro", "C:/Users/zvuk/PycharmProjects/instabot/1_bot/ph4.jpg")
+# my_bot.send_direct_message('sviteribuben', 'Hi')
+my_bot.masiv_sending_messages(direct_users_list, "Hi, i'm testing my bot) Don't worry", "C:/Users/zvuk/PycharmProjects/instabot/1_bot/ph4.jpg")
 # my_bot.download_userpage_content('https://www.instagram.com/elayes.lb/')
 # my_bot.put_exactly_like('https://www.instagram.com/p/B9j0VnRoDOJ/')
 # my_bot.like_photo_by_hastag('data')
